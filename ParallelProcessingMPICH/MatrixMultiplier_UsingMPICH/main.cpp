@@ -2,7 +2,7 @@
 //
 
 #include "stdafx.h"
-
+// #include "mpi.h"	// StdAfx.h에서 참조하도록 수정
 
 void main(int argc, char **argv)
 {
