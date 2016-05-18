@@ -20,15 +20,22 @@ int main(int argc, char **argv)
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Get_processor_name(processor_name, &namelen);
 
-	if (rank == 0) {
+	/* 여기까지 모든 프로그램이 동일하게 수행된다.
+	 * rank 는 각 프로세스를 구별하기 위해 사용된다.
+	 * 주로 rank 0 은 특별한 용도로 사용된다.
+	 */
+
+	/* 이 부분부터 프로세스의 rank 에 따라 수행할 코드가 달라진다. */
+	if (rank == 0) {	// rank 가 0 번인 프로세스가 수행할 코드
 		printf_s("### Process %d from %s ###\n", rank, processor_name);
 		fflush(stdout);
 		for (i = 1; i < size; i++) {
 			MPI_Recv(buff, MAX_DATA, MPI_CHAR, i, 0, MPI_COMM_WORLD, &status);
-			printf_s("%s\n", buff); fflush(stdout);
+			printf_s("%s\n", buff);
+			fflush(stdout);
 		}
 	}
-	else {
+	else {				//rank 가 0 이 아닌 프로세스가 수행할 코드
 		sprintf_s(buff, MAX_DATA, "### Process %d from %s ###", rank, processor_name);
 		fflush(stdout);
 		MPI_Send(buff, MAX_DATA, MPI_CHAR, 0, 0, MPI_COMM_WORLD);

@@ -2,6 +2,7 @@
 Parallel Processing Course - MPI(MPICH) Project [Team Project]
 
 ## Developing Environment
+Project Type: Win32 Console Application<br>
 Language: C<br>
 IDE: Microsoft Visual Studio 2015 (v140)
 
