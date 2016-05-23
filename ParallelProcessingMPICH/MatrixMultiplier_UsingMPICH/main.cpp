@@ -8,7 +8,7 @@
 #define HOST		(Rank)0		// Host Process (Rank 0)
 #define MAX_DATA	100
 
-#define WIDTH	3
+#define WIDTH	1024
 
 typedef int	Rank;				// Process Number
 
@@ -46,7 +46,7 @@ void main(int argc, char **argv)
 	Matrix<float> B(WIDTH, WIDTH);
 	Matrix<float> C(WIDTH, WIDTH);
 
-	// 임의 값 초기화
+	// 임의 값으로 행렬 초기화
 	for (int i = 0; i < WIDTH; i++) {
 		for (int j = 0; j < WIDTH; j++) {
 			A[i][j] = (float)i;
@@ -61,6 +61,10 @@ void main(int argc, char **argv)
 	int nextRankPosY = nextRankPos / WIDTH;
 	unsigned int x = pos - posY * WIDTH;
 
+	// 시간 측정 시작
+	clock_t start = clock();
+
+	// 행렬 곱셈
 	for (int y = posY, p = pos; y < nextRankPosY; y++) {
 		for (p, x; p < nextRankPos && x < C.getWidth(); p++, x++) {
 			// Csub is used to store the element
@@ -76,6 +80,7 @@ void main(int argc, char **argv)
 	}
 
 	/* 이 부분부터 프로세스의 rank 에 따라 수행할 코드가 달라진다. */
+	// Host로 결과값 전달
 	if (rank == HOST) {	// rank 가 0 번인 프로세스가 수행할 코드
 		for (Rank i = 1; i < size; i++) {
 			int currPos = rank * divSize;	// 메시지를 저장할 행렬상 시작 위치
@@ -84,18 +89,22 @@ void main(int argc, char **argv)
 		}
 
 		// 결과 행렬 출력
-		cout << endl;
-		for (int i = 0; i < WIDTH; i++) {
-			for (int j = 0; j < WIDTH; j++) {
-				cout << C[i][j] << " ";
-			}
-			cout << endl;
-		}
+		//cout << endl;
+		//for (int i = 0; i < WIDTH; i++) {
+		//	for (int j = 0; j < WIDTH; j++) {
+		//		cout << C[i][j] << " ";
+		//	}
+		//	cout << endl;
+		//}
 	}
 	else {				// rank 가 0 이 아닌 프로세스가 수행할 코드
 		int blockSize = (rank < size - 1) ? divSize : C.getCapacity() - pos;		// 메시지를 보낼 데이터 블록 크기
 		MPI_Send(&C.getData()[pos], sizeof(float) * blockSize, MPI_FLOAT, HOST, submul, MPI_COMM_WORLD);
 	}
+
+	// 시간 측정 완료
+	clock_t finish = clock();
+	cout << "Total time: " << (double)(finish - start) << endl;
 
 	MPI_Finalize();
 }
