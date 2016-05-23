@@ -7,7 +7,7 @@ namespace MatrixSpace
 	Matrix<NUM>::Matrix(unsigned int height, unsigned int width)
 		:m_height(height), m_width(width)
 	{
-		this->m_data = new NUM[getCapacity()];
+		m_data = new NUM[getCapacity()];
 	}
 
 	template<class NUM>
@@ -26,7 +26,7 @@ namespace MatrixSpace
 	template<class NUM>
 	Matrix<NUM>::~Matrix()
 	{
-		delete[] this->m_data;
+		delete[] m_data;
 	}
 
 	template<class NUM>
@@ -63,7 +63,7 @@ namespace MatrixSpace
 	void Matrix<NUM>::setData(const NUM data[])
 	{
 		for (unsigned int i; i < m_height * m_width; i++) {
-			this->m_data[i] = data[i];
+			m_data[i] = data[i];
 		}
 	}
 

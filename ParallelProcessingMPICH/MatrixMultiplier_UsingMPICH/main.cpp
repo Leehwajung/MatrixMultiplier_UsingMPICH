@@ -5,12 +5,10 @@
 
 #include "Matrix.cpp"
 
-#define HOST		(Rank)0		// Host Process (Rank 0)
-#define MAX_DATA	100
+#define HOST	(Rank)0		// Host Process (Rank 0)
+#define WIDTH	4096		// 행렬 가로 및 세로 너비
 
-#define WIDTH	1024
-
-typedef int	Rank;				// Process Number
+typedef int	Rank;			// Process Number
 
 using namespace std;
 using namespace MatrixSpace;
@@ -54,19 +52,24 @@ void main(int argc, char **argv)
 		}
 	}
 
-	int divSize = (int)(A.getCapacity() / size + 0.5);
-	int pos = rank * divSize;
-	int posY = pos / WIDTH;
-	int nextRankPos = (rank + 1) * divSize;
-	int nextRankPosY = nextRankPos / WIDTH;
-	unsigned int x = pos - posY * WIDTH;
+	// 문제 분할 관련 변수 초기화
+	int divSize = (int)(A.getCapacity() / size + 0.5);		// 분할 블록 크기
+	const unsigned int pos = rank * divSize;				// 블록 시작 위치
+	const unsigned int posY = pos / WIDTH;					// 블록 시작 세로 위치
+	const unsigned int nextRankPos = (rank + 1) * divSize;	// 다음 블록 시작 위치
+	const unsigned int nextRankPosY = nextRankPos / WIDTH;	// 다음 블록 시작 세로 위치
+	divSize = nextRankPos > C.getCapacity() ? C.getCapacity() - pos : divSize;	// 블록 크기
 
 	// 시간 측정 시작
-	clock_t start = clock();
+	double startwtime = 0.0, endwtime;
+	if (rank == HOST) {
+		startwtime = MPI_Wtime();
+	}
 
 	// 행렬 곱셈
-	for (int y = posY, p = pos; y < nextRankPosY; y++) {
-		for (p, x; p < nextRankPos && x < C.getWidth(); p++, x++) {
+	for (unsigned int y = posY, x = pos - posY * WIDTH, p = pos; 
+		y < nextRankPosY; y++) {									// 세로 방향 루프
+		for (x, p; x < C.getWidth() && p < nextRankPos; x++, p++) {	// 가로방향 루프
 			// Csub is used to store the element
 			float Csub = 0;
 
@@ -96,15 +99,14 @@ void main(int argc, char **argv)
 		//	}
 		//	cout << endl;
 		//}
+
+		// 시간 측정 종료
+		endwtime = MPI_Wtime();
+		cout << "wall clock time: " << endwtime - startwtime << endl;
 	}
 	else {				// rank 가 0 이 아닌 프로세스가 수행할 코드
-		int blockSize = (rank < size - 1) ? divSize : C.getCapacity() - pos;		// 메시지를 보낼 데이터 블록 크기
-		MPI_Send(&C.getData()[pos], sizeof(float) * blockSize, MPI_FLOAT, HOST, submul, MPI_COMM_WORLD);
+		MPI_Send(&C.getData()[pos], sizeof(float) * divSize, MPI_FLOAT, HOST, submul, MPI_COMM_WORLD);
 	}
-
-	// 시간 측정 완료
-	clock_t finish = clock();
-	cout << "Total time: " << (double)(finish - start) << endl;
 
 	MPI_Finalize();
 }
