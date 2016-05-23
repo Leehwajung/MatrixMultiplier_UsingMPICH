@@ -28,8 +28,6 @@ void main(int argc, char **argv)
 	char processor_name[MPI_MAX_PROCESSOR_NAME];
 	int namelen;
 
-	//char buff[MAX_DATA];
-
 	MPI_Status status;
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -56,12 +54,12 @@ void main(int argc, char **argv)
 		}
 	}
 
-	int divSize = A.getCapacity() / size;
+	int divSize = (int)(A.getCapacity() / size + 0.5);
 	int pos = rank * divSize;
 	int posY = pos / WIDTH;
 	int nextRankPos = (rank + 1) * divSize;
 	int nextRankPosY = nextRankPos / WIDTH;
-	int x = pos - posY * WIDTH;
+	unsigned int x = pos - posY * WIDTH;
 
 	for (int y = posY, p = pos; y < nextRankPosY; y++) {
 		for (p, x; p < nextRankPos && x < C.getWidth(); p++, x++) {
@@ -80,13 +78,12 @@ void main(int argc, char **argv)
 	/* 이 부분부터 프로세스의 rank 에 따라 수행할 코드가 달라진다. */
 	if (rank == HOST) {	// rank 가 0 번인 프로세스가 수행할 코드
 		for (Rank i = 1; i < size; i++) {
-			for (int p = rank * divSize; p < (rank + 1) * divSize; p++) {
-				float value;
-				MPI_Recv(&value, sizeof(float), MPI_FLOAT, i, p, MPI_COMM_WORLD, &status);
-				C.getData()[p] = value;
-			}
+			int currPos = rank * divSize;	// 메시지를 저장할 행렬상 시작 위치
+			int blockSize = (rank < size - 1) ? divSize : C.getCapacity() - currPos;		// 메시지를 받을 데이터 블록 크기
+			MPI_Recv(&C.getData()[currPos], sizeof(float) * blockSize, MPI_FLOAT, i, submul, MPI_COMM_WORLD, &status);
 		}
 
+		// 결과 행렬 출력
 		cout << endl;
 		for (int i = 0; i < WIDTH; i++) {
 			for (int j = 0; j < WIDTH; j++) {
@@ -96,9 +93,8 @@ void main(int argc, char **argv)
 		}
 	}
 	else {				// rank 가 0 이 아닌 프로세스가 수행할 코드
-		for (int p = rank * divSize; p < (rank + 1) * divSize; p++) {
-			MPI_Send(&C.getData()[p], sizeof(float), MPI_FLOAT, HOST, p, MPI_COMM_WORLD);
-		}
+		int blockSize = (rank < size - 1) ? divSize : C.getCapacity() - pos;		// 메시지를 보낼 데이터 블록 크기
+		MPI_Send(&C.getData()[pos], sizeof(float) * blockSize, MPI_FLOAT, HOST, submul, MPI_COMM_WORLD);
 	}
 
 	MPI_Finalize();
