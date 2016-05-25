@@ -36,25 +36,25 @@ namespace MatrixSpace
 	}
 
 	template<class NUM>
-	NUM Matrix<NUM>::getData(unsigned int y, unsigned int x)
+	NUM Matrix<NUM>::getData(unsigned int y, unsigned int x) const
 	{
 		return *this[y][x];
 	}
 
 	template<class NUM>
-	unsigned int Matrix<NUM>::getWidth()
+	unsigned int Matrix<NUM>::getWidth() const
 	{
 		return m_width;
 	}
 
 	template<class NUM>
-	unsigned int Matrix<NUM>::getHeight()
+	unsigned int Matrix<NUM>::getHeight() const
 	{
 		return m_height;
 	}
 
 	template<class NUM>
-	unsigned int Matrix<NUM>::getCapacity()
+	unsigned int Matrix<NUM>::getCapacity() const
 	{
 		return m_height * m_width;
 	}
@@ -90,6 +90,12 @@ namespace MatrixSpace
 
 	template<class NUM>
 	NUM* Matrix<NUM>::operator[](unsigned int y)
+	{
+		return &m_data[y * m_width];
+	}
+	
+	template<class NUM>
+	const NUM* Matrix<NUM>::operator[](unsigned int y) const
 	{
 		return &m_data[y * m_width];
 	}
