@@ -14,4 +14,10 @@ namespace MatrixSpace
 
 	template<class NUM>
 	void matrixMultiplyUsingMPICH(Matrix<NUM>& MatrixC, const Matrix<NUM>& MatrixA, const Matrix<NUM>& MatrixB);
+
+	unsigned int getStartPosition(unsigned int capacity, Rank rank, unsigned int rankSize);
+
+	unsigned int getEndPosition(unsigned int capacity, Rank rank, unsigned int rankSize);
+
+	unsigned int getBlockSize(unsigned int capacity, Rank rank, unsigned int rankSize);
 }

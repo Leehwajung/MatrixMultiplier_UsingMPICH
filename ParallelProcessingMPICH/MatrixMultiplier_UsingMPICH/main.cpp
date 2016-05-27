@@ -3,7 +3,7 @@
 
 #include "stdafx.h"
 
-#include "MatrixMul.cpp"
+#include "MatrixMulGeneric.cpp"
 
 #define WIDTH	10		// 행렬 가로 및 세로 너비
 
@@ -30,15 +30,15 @@ void main(int argc, char **argv)
 
 	matrixMultiplyUsingMPICH(C, A, B);
 
-	// 결과 행렬 출력
-	//cout << endl;
+	//// 결과 행렬 출력
+	//cout << "st--------------"<<endl;
 	//for (int i = 0; i < WIDTH; i++) {
 	//	for (int j = 0; j < WIDTH; j++) {
 	//		cout << C[i][j] << " ";
 	//	}
 	//	cout << endl;
 	//}
-	//cout << endl;
+	//cout << "ed--------------" << endl;
 
 	MPI_Finalize();
 }
