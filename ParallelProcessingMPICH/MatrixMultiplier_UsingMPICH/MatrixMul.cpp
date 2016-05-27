@@ -66,17 +66,27 @@ namespace MatrixSpace
 		// Host로 결과값 전달
 		if (rank == HOST) {	// rank 가 0 번인 프로세스가 수행할 코드
 			for (Rank i = 1; i < size; i++) {
-				int currPos = rank * divSize;	// 메시지를 저장할 행렬상 시작 위치
+				int currPos = i * divSize;	// 메시지를 저장할 행렬상 시작 위치
 				int blockSize = (rank < size - 1) ? divSize : MatrixC.getCapacity() - currPos;		// 메시지를 받을 데이터 블록 크기
-				MPI_Recv(&MatrixC.getData()[currPos], sizeof(float) * blockSize, MPI_FLOAT, i, submul, MPI_COMM_WORLD, &status);
+				MPI_Recv(&MatrixC.getData()[currPos], blockSize, MPI_FLOAT, i, submul, MPI_COMM_WORLD, &status);
 			}
 
 			// 시간 측정 종료
 			endwtime = MPI_Wtime();
 			cout << "Wall clock time: " << endwtime - startwtime << endl;
+
+			// 결과 행렬 출력
+			cout << endl;
+			for (int i = 0; i < MatrixC.getHeight(); i++) {
+				for (int j = 0; j < MatrixC.getWidth(); j++) {
+					cout << MatrixC[i][j] << " ";
+				}
+				cout << endl;
+			}
+			cout << endl;
 		}
 		else {				// rank 가 0 이 아닌 프로세스가 수행할 코드
-			MPI_Send(&MatrixC.getData()[pos], sizeof(float) * divSize, MPI_FLOAT, HOST, submul, MPI_COMM_WORLD);
+			MPI_Send(&MatrixC.getData()[pos], divSize, MPI_FLOAT, HOST, submul, MPI_COMM_WORLD);
 		}
 	}
 }

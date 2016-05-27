@@ -5,7 +5,7 @@
 
 #include "MatrixMul.cpp"
 
-#define WIDTH	4096		// 행렬 가로 및 세로 너비
+#define WIDTH	10		// 행렬 가로 및 세로 너비
 
 using namespace std;
 using namespace MatrixSpace;
@@ -24,19 +24,21 @@ void main(int argc, char **argv)
 		for (int j = 0; j < WIDTH; j++) {
 			A[i][j] = (float)i;
 			B[i][j] = (float)j;
+			C[i][j] = 0;
 		}
 	}
 
 	matrixMultiplyUsingMPICH(C, A, B);
 
 	// 결과 행렬 출력
-	cout << endl;
-	for (int i = 0; i < WIDTH; i++) {
-		for (int j = 0; j < WIDTH; j++) {
-			cout << C[i][j] << " ";
-		}
-		cout << endl;
-	}
+	//cout << endl;
+	//for (int i = 0; i < WIDTH; i++) {
+	//	for (int j = 0; j < WIDTH; j++) {
+	//		cout << C[i][j] << " ";
+	//	}
+	//	cout << endl;
+	//}
+	//cout << endl;
 
 	MPI_Finalize();
 }

@@ -62,7 +62,7 @@ namespace MatrixSpace
 	template<class NUM>
 	void Matrix<NUM>::setData(const NUM data[])
 	{
-		for (unsigned int i; i < m_height * m_width; i++) {
+		for (unsigned int i = 0; i < m_height * m_width; i++) {
 			m_data[i] = data[i];
 		}
 	}
