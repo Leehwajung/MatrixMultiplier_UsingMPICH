@@ -41,6 +41,12 @@ namespace MatrixSpace
 		double startwtime = 0.0, endwtime;
 		if (rank == HOST) {
 			startwtime = MPI_Wtime();
+			for (Rank i = 1; i < size; i++) {		//클라이언트로 배열전송
+				int currPos = getStartPosition(capacity, i, size);	// 메시지를 저장할 행렬상 시작 위치
+				int blockSize = getBlockSize(capacity, i, size);	// 메시지를 받을 데이터 블록 크기
+				MPI_Send(&MatrixA.getData()[startPos], getBlockSize(capacity, rank, size), MPI_FLOAT, i, submul, MPI_COMM_WORLD);
+				MPI_Send(&MatrixB.getData()[startPos], getBlockSize(capacity, rank, size), MPI_FLOAT, i, submul+1, MPI_COMM_WORLD);
+			}
 		}
 
 		// 행렬 곱셈
