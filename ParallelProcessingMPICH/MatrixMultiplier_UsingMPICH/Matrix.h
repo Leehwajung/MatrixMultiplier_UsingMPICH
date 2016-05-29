@@ -20,7 +20,7 @@ namespace MatrixSpace
 		unsigned int getWidth() const;
 		unsigned int getCapacity() const;
 		NUM* getData();
-		//NUM getData(unsigned int y, unsigned int x) const;
+		NUM getData(unsigned int y, unsigned int x) const;
 
 		// Mutators
 		void setData(const NUM data[]);

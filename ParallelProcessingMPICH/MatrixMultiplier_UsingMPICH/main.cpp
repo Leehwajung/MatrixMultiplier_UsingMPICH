@@ -28,17 +28,7 @@ void main(int argc, char **argv)
 		}
 	}
 
-	Rank rank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-	if (rank == HOST) {
-		matrixMultiplyOnHost(C, A, B);
-	}
-	else {
-		<float>matrixMultiplyOnClient(rank);
-	}
-
-	
+	matrixMultiplyUsingMPICH(C, A, B);
 
 	//// 결과 행렬 출력
 	//cout << "st--------------"<<endl;

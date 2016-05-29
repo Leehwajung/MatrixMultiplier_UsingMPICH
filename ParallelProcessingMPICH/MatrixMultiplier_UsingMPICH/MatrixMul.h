@@ -8,20 +8,12 @@ namespace MatrixSpace
 
 	enum Message
 	{
-		initHeightA,
-		initWidthA,
-		initDataA,
-		initHeightB,
-		initWidthB,
-		initDataB,
+		total,
 		submul
 	};
 
 	template<class NUM>
-	void matrixMultiplyOnHost(Matrix<NUM>& MatrixC, const Matrix<NUM>& MatrixA, const Matrix<NUM>& MatrixB);
-
-	template<class NUM>
-	void matrixMultiplyOnClient(Rank rank);
+	void matrixMultiplyUsingMPICH(Matrix<NUM>& MatrixC, const Matrix<NUM>& MatrixA, const Matrix<NUM>& MatrixB);
 
 	unsigned int getStartPosition(unsigned int capacity, Rank rank, unsigned int rankSize);
 

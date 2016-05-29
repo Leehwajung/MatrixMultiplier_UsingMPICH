@@ -35,11 +35,11 @@ namespace MatrixSpace
 		return m_data;
 	}
 
-	//template<class NUM>
-	//NUM Matrix<NUM>::getData(unsigned int y, unsigned int x) const
-	//{
-	//	return *this[y][x];
-	//}
+	template<class NUM>
+	NUM Matrix<NUM>::getData(unsigned int y, unsigned int x) const
+	{
+		return *this[y][x];
+	}
 
 	template<class NUM>
 	unsigned int Matrix<NUM>::getWidth() const
