@@ -23,6 +23,8 @@ namespace MatrixSpace
 		* 주로 rank 0 은 특별한 용도로 사용된다.
 		*/
 
+		Rank i;
+
 		if (rank == HOST) {
 			cout << "Computing result using MPICH ..." << endl;
 		}
@@ -39,15 +41,24 @@ namespace MatrixSpace
 
 		// 시간 측정 시작
 		double startwtime = 0.0, endwtime;
-		if (rank == HOST) {
+		if (rank == HOST) {		//호스트( 타이머 작동 및 데이터 전송)
 			startwtime = MPI_Wtime();
-			for (Rank i = 1; i < size; i++) {		//클라이언트로 배열전송
+			for (i = 1; i < size; i++) {		//클라이언트로 배열전송
 				int currPos = getStartPosition(capacity, i, size);	// 메시지를 저장할 행렬상 시작 위치
 				int blockSize = getBlockSize(capacity, i, size);	// 메시지를 받을 데이터 블록 크기
-				MPI_Send(&MatrixA.getData()[startPos], getBlockSize(capacity, rank, size), MPI_FLOAT, i, submul, MPI_COMM_WORLD);
-				MPI_Send(&MatrixB.getData()[startPos], getBlockSize(capacity, rank, size), MPI_FLOAT, i, submul+1, MPI_COMM_WORLD);
-			}
-		}
+				MPI_Send(&i, 1, MPI_INT, i, submul - 1, MPI_COMM_WORLD);
+				MPI_Send(&MatrixA.getData()[currPos], getBlockSize(capacity, rank, size), MPI_FLOAT, i, submul - 1, MPI_COMM_WORLD);
+				MPI_Send(&MatrixB.getData()[currPos], getBlockSize(capacity, rank, size), MPI_FLOAT, i, submul - 1, MPI_COMM_WORLD);
+			}	//end for
+		}	//end if
+
+		else{	//클라이언트(데이터 받음)
+			MPI_Recv(&i, getBlockSize(capacity, rank, size), MPI_INT, HOST, submul - 1, MPI_COMM_WORLD, &status);	//호스트에서의 i값 가져오기 위해 사용
+			int currPos = getStartPosition(capacity, i, size);	// 메시지를 저장할 행렬상 시작 위치
+			int blockSize = getBlockSize(capacity, i, size);	// 메시지를 받을 데이터 블록 크기
+			MPI_Recv(&MatrixA.getData()[currPos], getBlockSize(capacity, rank, size), MPI_FLOAT, HOST, submul - 1, MPI_COMM_WORLD, &status);
+			MPI_Recv(&MatrixB.getData()[currPos], getBlockSize(capacity, rank, size), MPI_FLOAT, HOST, submul - 1, MPI_COMM_WORLD, &status);
+		}	//end else
 
 		// 행렬 곱셈
 		for (unsigned int y = startPosY, x = startPos - startPosY * width, p = startPos;
@@ -59,22 +70,22 @@ namespace MatrixSpace
 				// Loop over all the sub-matrices of A and B
 				for (unsigned int i = 0; i < width; i++) {
 					Csub += MatrixA[y][i] * MatrixB[i][x];
-				}
+				}	//end for
 				MatrixC[y][x] = Csub;
-			}
+			}	//end for
 			x = 0;
-		}
+		}	//end for
 
 		cout << "Completed on process " << rank << " from " << processor_name << endl;
 
 		/* 이 부분부터 프로세스의 rank 에 따라 수행할 코드가 달라진다. */
 		// Host로 결과값 전달
-		if (rank == HOST) {	// rank 가 0 번인 프로세스가 수행할 코드
-			for (Rank i = 1; i < size; i++) {
+		if (rank == HOST) {	// rank 가 0 번인 프로세스가 수행할 코드 (클라이언트에서 데이터 받고 출력 및 시간 측정 종료)
+			for (i = 1; i < size; i++) {
 				int currPos = getStartPosition(capacity, i, size);	// 메시지를 저장할 행렬상 시작 위치
 				int blockSize = getBlockSize(capacity, i, size);	// 메시지를 받을 데이터 블록 크기
 				MPI_Recv(&MatrixC.getData()[currPos], blockSize, MPI_FLOAT, i, submul, MPI_COMM_WORLD, &status);
-			}
+			}		//end for
 
 			// 시간 측정 종료
 			endwtime = MPI_Wtime();
@@ -85,13 +96,14 @@ namespace MatrixSpace
 			for (unsigned int i = 0; i < MatrixC.getHeight(); i++) {
 				for (unsigned int j = 0; j < MatrixC.getWidth(); j++) {
 					cout << MatrixC[i][j] << " ";
-				}
+				}	//end for
 				cout << endl;
-			}
+			}	//end for
 			cout << endl;
-		}
-		else {				// rank 가 0 이 아닌 프로세스가 수행할 코드
+		}//end if
+
+		else {				// rank 가 0 이 아닌 프로세스가 수행할 코드 (호스트로 계산 결과 전달)
 			MPI_Send(&MatrixC.getData()[startPos], getBlockSize(capacity, rank, size), MPI_FLOAT, HOST, submul, MPI_COMM_WORLD);
-		}
+		}		//end else
 	}
 }
