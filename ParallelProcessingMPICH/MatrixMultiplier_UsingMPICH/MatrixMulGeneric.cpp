@@ -3,6 +3,7 @@
 
 namespace MatrixSpace
 {
+	// Çà·Ä ºí·Ï °ö¼À
 	template<class NUM>
 	void matrixMultiply(Matrix<NUM>& MatrixC, const Matrix<NUM>& MatrixA, const Matrix<NUM>& MatrixB,
 		const unsigned int startPos, const unsigned int endPos)
