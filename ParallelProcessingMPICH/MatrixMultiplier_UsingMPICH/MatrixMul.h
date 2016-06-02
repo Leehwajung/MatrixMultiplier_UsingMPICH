@@ -22,7 +22,7 @@ namespace MatrixSpace
 	template<class NUM>
 	void matrixMultiply(Matrix<NUM>& MatrixC, const Matrix<NUM>& MatrixA, const Matrix<NUM>& MatrixB, const unsigned int startPos, const unsigned int endPos);
 
-	double matrixMultiplyUsingMPICH_Host(Matrix<float>& MatrixC, const Matrix<float>& MatrixA, const Matrix<float>& MatrixB, const Rank rank = HOST);
+	double matrixMultiplyUsingMPICH_Host(Matrix<float>& MatrixC, const Matrix<float>& MatrixA, const Matrix<float>& MatrixB);
 
 	void matrixMultiplyUsingMPICH_Satellite();
 

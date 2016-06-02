@@ -21,7 +21,7 @@ void host_main(int argc, char *argv[], const Rank rank = HOST)
 	char processor_name[MPI_MAX_PROCESSOR_NAME];
 	int namelen;
 
-	char option;
+	char option = '\0';
 	int height = INITWIDTH;
 	int correspondence = INITWIDTH;
 	int width = INITWIDTH;
@@ -92,20 +92,20 @@ void host_main(int argc, char *argv[], const Rank rank = HOST)
 	if (isSquare && !debug) {	// 정방형 행렬 초기화
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				A[i][j] = (float)rand() / 100.0;	// 앞행렬 임의값 초기화
-				B[i][j] = (float)rand() / 100.0;	// 뒷행렬 임의값 초기화
+				A[i][j] = (float)(rand() / 100.0);	// 앞행렬 임의값 초기화
+				B[i][j] = (float)(rand() / 100.0);	// 뒷행렬 임의값 초기화
 			}
 		}
 	}
 	else if (!debug) {			// 비정방형 행렬 초기화
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < correspondence; j++) {
-				A[i][j] = (float)rand() / 100.0;	// 앞행렬 임의값 초기화
+				A[i][j] = (float)(rand() / 100.0);	// 앞행렬 임의값 초기화
 			}
 		}
 		for (int i = 0; i < correspondence; i++) {
 			for (int j = 0; j < width; j++) {
-				B[i][j] = (float)rand() / 100.0;	// 뒷행렬 임의값 초기화
+				B[i][j] = (float)(rand() / 100.0);	// 뒷행렬 임의값 초기화
 			}
 		}
 	}
@@ -196,8 +196,8 @@ void main(int argc, char *argv[])
 template<class NUM>
 void printMatrix(Matrix<NUM>& matrix)
 {
-	for (int i = 0; i < matrix.getHeight(); i++) {
-		for (int j = 0; j < matrix.getWidth(); j++) {
+	for (unsigned int i = 0; i < matrix.getHeight(); i++) {
+		for (unsigned int j = 0; j < matrix.getWidth(); j++) {
 			cout << matrix[i][j] << " ";
 		}
 		cout << endl;

@@ -5,7 +5,8 @@ namespace MatrixSpace
 {
 	// 행렬 블록 곱셈
 	template<class NUM>
-	void matrixMultiply(Matrix<NUM>& MatrixC, const Matrix<NUM>& MatrixA, const Matrix<NUM>& MatrixB,
+	void matrixMultiply(Matrix<NUM>& MatrixC, 
+		const Matrix<NUM>& MatrixA, const Matrix<NUM>& MatrixB,
 		const unsigned int startPos, const unsigned int endPos)
 	{
 		const unsigned int width = MatrixA.getWidth();		// 행렬 가로 너비

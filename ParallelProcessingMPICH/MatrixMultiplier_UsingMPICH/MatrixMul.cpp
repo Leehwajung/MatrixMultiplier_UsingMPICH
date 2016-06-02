@@ -7,7 +7,8 @@
 namespace MatrixSpace
 {
 	// rank 가 0 번인 프로세스가 수행할 코드
-	double matrixMultiplyUsingMPICH_Host(Matrix<float>& MatrixC, const Matrix<float>& MatrixA, const Matrix<float>& MatrixB, const Rank rank)
+	double matrixMultiplyUsingMPICH_Host(Matrix<float>& MatrixC, 
+		const Matrix<float>& MatrixA, const Matrix<float>& MatrixB)
 	{
 		MPI_Status status;
 		int size;
@@ -22,8 +23,11 @@ namespace MatrixSpace
 		unsigned int widthB = MatrixB.getWidth();
 		const float *dataB = MatrixB.getData();
 
+		// 결과 행렬
+		Matrix<float> MatrixResult(heightA, widthB);
+
 		// 문제 분할 관련 변수 초기화
-		const unsigned int capacity = MatrixA.getCapacity();						// 앞행렬 셀 전체 개수
+		const unsigned int capacity = MatrixResult.getCapacity();					// 결과 셀 전체 개수
 		const unsigned int endPositionHost = getEndPosition(capacity, HOST, size);	// 블록 끝 위치
 		unsigned int *startPosition = new unsigned int[size];
 		unsigned int *blockSize = new unsigned int[size];
@@ -31,9 +35,6 @@ namespace MatrixSpace
 			startPosition[i] = getStartPosition(capacity, i, size);	// 블록 시작 위치
 			blockSize[i] = getBlockSize(capacity, i, size);			// 데이터 블록 크기
 		}
-
-		// 결과 행렬
-		Matrix<float> MatrixResult(heightA, widthA);
 
 		// 시간 측정 시작
 		double startwtime = 0.0, endwtime;
@@ -43,10 +44,10 @@ namespace MatrixSpace
 		for (Rank i = 1; i < size; i++) {
 			MPI_Send(&heightA, 1, MPI_INT, i, InitHeightA, MPI_COMM_WORLD);
 			MPI_Send(&widthA, 1, MPI_INT, i, InitWidthA, MPI_COMM_WORLD);
-			MPI_Send((void*)dataA, capacity, MPI_FLOAT, i, InitDataA, MPI_COMM_WORLD);
+			MPI_Send((void*)dataA, heightA * widthA, MPI_FLOAT, i, InitDataA, MPI_COMM_WORLD);
 			MPI_Send(&heightB, 1, MPI_INT, i, InitHeightB, MPI_COMM_WORLD);
 			MPI_Send(&widthB, 1, MPI_INT, i, InitWidthB, MPI_COMM_WORLD);
-			MPI_Send((void*)dataB, capacity, MPI_FLOAT, i, InitDataB, MPI_COMM_WORLD);
+			MPI_Send((void*)dataB, heightB * widthB, MPI_FLOAT, i, InitDataB, MPI_COMM_WORLD);
 			MPI_Send(&startPosition[i], 1, MPI_INT, i, StartPos, MPI_COMM_WORLD);
 			MPI_Send(&blockSize[i], 1, MPI_INT, i, BlockSize, MPI_COMM_WORLD);
 		}
@@ -56,7 +57,8 @@ namespace MatrixSpace
 
 		// Satellites로부터 결과값을 전달 받아 합침
 		for (Rank i = 1; i < size; i++) {
-			MPI_Recv(&MatrixResult.getData()[startPosition[i]], blockSize[i], MPI_FLOAT, i, SubResult, MPI_COMM_WORLD, &status);
+			MPI_Recv(&MatrixResult.getData()[startPosition[i]], blockSize[i], 
+				MPI_FLOAT, i, SubResult, MPI_COMM_WORLD, &status);
 		}
 
 		// 시간 측정 종료
@@ -90,11 +92,13 @@ namespace MatrixSpace
 		MPI_Recv(&heightA, 1, MPI_INT, HOST, InitHeightA, MPI_COMM_WORLD, &status);
 		MPI_Recv(&widthA, 1, MPI_INT, HOST, InitWidthA, MPI_COMM_WORLD, &status);
 		Matrix<float> MatrixA(heightA, widthA);
-		MPI_Recv(MatrixA.getData(), MatrixA.getCapacity(), MPI_FLOAT, HOST, InitDataA, MPI_COMM_WORLD, &status);
+		MPI_Recv(MatrixA.getData(), MatrixA.getCapacity(), 
+			MPI_FLOAT, HOST, InitDataA, MPI_COMM_WORLD, &status);
 		MPI_Recv(&heightB, 1, MPI_INT, HOST, InitHeightB, MPI_COMM_WORLD, &status);
 		MPI_Recv(&widthB, 1, MPI_INT, HOST, InitWidthB, MPI_COMM_WORLD, &status);
 		Matrix<float> MatrixB(heightB, widthB);
-		MPI_Recv(MatrixB.getData(), MatrixB.getCapacity(), MPI_FLOAT, HOST, InitDataB, MPI_COMM_WORLD, &status);
+		MPI_Recv(MatrixB.getData(), MatrixB.getCapacity(), 
+			MPI_FLOAT, HOST, InitDataB, MPI_COMM_WORLD, &status);
 		MPI_Recv(&startPosition, 1, MPI_INT, HOST, StartPos, MPI_COMM_WORLD, &status);
 		MPI_Recv(&blockSize, 1, MPI_INT, HOST, BlockSize, MPI_COMM_WORLD, &status);
 
@@ -105,9 +109,11 @@ namespace MatrixSpace
 		matrixMultiply(MatrixC, MatrixA, MatrixB, startPosition, startPosition + blockSize - 1);
 
 		// Host로 결과값 전달
-		MPI_Send(&MatrixC.getData()[startPosition], blockSize, MPI_FLOAT, HOST, SubResult, MPI_COMM_WORLD);
+		MPI_Send(&MatrixC.getData()[startPosition], blockSize, 
+			MPI_FLOAT, HOST, SubResult, MPI_COMM_WORLD);
 	}
 
+	// 문제 분할 시작 위치
 	unsigned int getStartPosition(unsigned int capacity, Rank rank, unsigned int rankSize)
 	{
 		int defaultProcsNum = rankSize - capacity % rankSize;	// 기본 블록크기로 할당할 프로세스 개수
@@ -120,6 +126,7 @@ namespace MatrixSpace
 		}
 	}
 
+	// 문제 분할 종료 위치
 	unsigned int getEndPosition(unsigned int capacity, Rank rank, unsigned int rankSize)
 	{
 		if (rank < (int)rankSize - 1) {	// 끝 위치는 다음 시작 위치의 바로 앞
@@ -131,6 +138,7 @@ namespace MatrixSpace
 		//return getStartPosition(capacity, rank, rankSize) + getBlockSize(capacity, rank, rankSize) - 1;
 	}
 
+	// 문제 분할된 블록 크기
 	unsigned int getBlockSize(unsigned int capacity, Rank rank, unsigned int rankSize)
 	{
 		int defaultProcsNum = rankSize - capacity % rankSize;	// 기본 블록크기로 할당할 프로세스 개수
